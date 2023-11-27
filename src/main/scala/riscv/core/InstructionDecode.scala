@@ -9,6 +9,7 @@ import chisel3._
 import chisel3.util._
 import riscv.Parameters
 
+// opcode
 object InstructionTypes {
   val L  = "b0000011".U
   val I  = "b0010011".U
@@ -17,6 +18,7 @@ object InstructionTypes {
   val B  = "b1100011".U
 }
 
+// funct3 
 object Instructions {
   val lui   = "b0110111".U
   val nop   = "b0000001".U
@@ -132,8 +134,11 @@ class InstructionDecode extends Module {
     val ex_immediate           = Output(UInt(Parameters.DataWidth))
     val ex_aluop1_source       = Output(UInt(1.W))
     val ex_aluop2_source       = Output(UInt(1.W))
+    // control signals
+    // ------------------- lab3 -------------------
     val memory_read_enable     = Output(Bool())
     val memory_write_enable    = Output(Bool())
+    // ------------------- lab3 -------------------
     val wb_reg_write_source    = Output(UInt(2.W))
     val reg_write_enable       = Output(Bool())
     val reg_write_address      = Output(UInt(Parameters.PhysicalRegisterAddrWidth))
@@ -145,10 +150,16 @@ class InstructionDecode extends Module {
   val rs1    = io.instruction(19, 15)
   val rs2    = io.instruction(24, 20)
 
+  // if opcode == lui, then rd is not used.
   io.regs_reg1_read_address := Mux(opcode === Instructions.lui, 0.U(Parameters.PhysicalRegisterAddrWidth), rs1)
+  // except for lui, rs2 is always used.
   io.regs_reg2_read_address := rs2
+
+  // main idea is to use MuxLookup to select the right immediate.
   val immediate = MuxLookup(
     opcode,
+    // sign extend
+    // default
     Cat(Fill(20, io.instruction(31)), io.instruction(31, 20)),
     IndexedSeq(
       InstructionTypes.I -> Cat(Fill(21, io.instruction(31)), io.instruction(30, 20)),
@@ -175,6 +186,7 @@ class InstructionDecode extends Module {
     )
   )
   io.ex_immediate := immediate
+
   io.ex_aluop1_source := Mux(
     opcode === Instructions.auipc || opcode === InstructionTypes.B || opcode === Instructions.jal,
     ALUOp1Source.InstructionAddress,
@@ -195,7 +207,9 @@ class InstructionDecode extends Module {
   )
 
   // lab3(InstructionDecode) begin
-
+  io.memory_read_enable := Mux(opcode === InstructionTypes.L, 1.U(1.W), 0.U(1.W))
+  io.memory_write_enable := Mux(opcode === InstructionTypes.S, 1.U(1.W), 0.U(1.W))
+  
   // lab3(InstructionDecode) end
 
   io.wb_reg_write_source := MuxCase(

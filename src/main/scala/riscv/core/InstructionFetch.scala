@@ -6,6 +6,7 @@ package riscv.core
 import chisel3._
 import riscv.Parameters
 
+// val EntryAddress = 0x1000.U(Parameters.AddrWidth)
 object ProgramCounter {
   val EntryAddress = Parameters.EntryAddress
 }
@@ -25,12 +26,17 @@ class InstructionFetch extends Module {
   when(io.instruction_valid) {
     io.instruction := io.instruction_read_data
     // lab3(InstructionFetch) begin
-
+    // handle pc value
+    when(io.jump_flag_id) {
+      pc := io.jump_address_id
+    }.otherwise {
+      pc := pc + 4.U
+    }
     // lab3(InstructionFetch) end
 
   }.otherwise {
     pc             := pc
-    io.instruction := 0x00000013.U
+    io.instruction := 0x00000013.U // addi x0, x0, 0
   }
   io.instruction_address := pc
 }

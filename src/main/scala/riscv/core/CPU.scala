@@ -36,9 +36,19 @@ class CPU extends Module {
   regs.io.debug_read_address := io.debug_read_address
   io.debug_read_data         := regs.io.debug_read_data
 
+  // IF to ID
   id.io.instruction := inst_fetch.io.instruction
 
   // lab3(cpu) begin
+  // ID to EX
+  ex.io.instruction  := inst_fetch.io.instruction
+  ex.io.instruction_address := inst_fetch.io.instruction_address
+  ex.io.reg1_data := regs.io.read_data1
+  ex.io.reg2_data := regs.io.read_data2
+  ex.io.immediate := id.io.ex_immediate
+  ex.io.aluop1_source := id.io.ex_aluop1_source
+  ex.io.aluop2_source := id.io.ex_aluop2_source
+
 
   // lab3(cpu) end
 

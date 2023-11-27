@@ -37,6 +37,9 @@ class Execute extends Module {
   alu_ctrl.io.funct7 := funct7
 
   // lab3(Execute) begin
+  alu.io.func := alu_ctrl.io.alu_funct
+  alu.io.op1 := Mux(io.aluop1_source === 0.U, io.reg1_data, 0.U) // maybe some wrong!
+  alu.io.op2 := Mux(io.aluop2_source === 1.U, io.immediate, io.reg2_data)
 
   // lab3(Execute) end
 
